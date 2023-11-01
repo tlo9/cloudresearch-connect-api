@@ -48,3 +48,19 @@ Thumbs.db
 *.mov
 *.wmv
 
+__pycache__/
+*.log
+*.pot
+.env
+build/
+*.egg
+.installed.cfg
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+.cache
+build/
+dist/
+eggs/
+develop-eggs/
+.project

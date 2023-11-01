@@ -1,0 +1,18 @@
+[project]
+name="tism.crconnect"
+version = "0.1"
+authors = [
+  { name="Tiju Oliver", email="tiju.oliver@gmail.com" },
+]
+description = "Python bindings for CloudResearch's Connect API"
+readme="README.md"
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[build-system]
+requires = ["setuptools >= 66.0.0", "strenum>=0.4.15", "requests>=2.31.0","typing_extensions>=4.7.1"]
+build-backend = "setuptools.build_meta"
