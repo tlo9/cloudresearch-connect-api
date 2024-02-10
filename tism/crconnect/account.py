@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from requests import Session
-from decimal import Decimal
 from typing import TypedDict, Optional
 from typing_extensions import Required
 from . import base
 
 class AccountInfo(TypedDict):
-    accountBalance: Required[Decimal]
+    accountBalance: Required[float]
     """The available balance that is left in your account."""
 
 def get_info(session: Optional[Session]=None, **kwargs) -> AccountInfo:

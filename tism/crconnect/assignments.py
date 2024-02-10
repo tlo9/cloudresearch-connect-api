@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 After a participant completes their assignment, their assignment status will be in a `Pending` state.
 Researchers will have 14 days to either `Approve` or `Reject` the work that the participant has submitted.
@@ -12,7 +13,7 @@ even after it has been `Rejected`.
 If assignments are `Rejected`, your account balance will be credited with the amount that would have paid to
 the participants plus any associated Connect fees.
 """
-from decimal import Decimal
+
 from enum import auto
 from typing import Optional, TypedDict
 
@@ -54,10 +55,10 @@ class Assignment(TypedDict):
     status: AssignmentStatus
     """The status of the assignments."""
 
-    payment: Decimal
+    payment: float
     """The amount in USD that you will pay."""
 
-    bonus: Decimal
+    bonus: float
     """How much the participant has been bonused for this project."""
 
     completion: CompletionInfo
@@ -81,10 +82,10 @@ class BonusPayment(TypedDict, total=False):
     message: Optional[str]
     """The message to display to the participant."""
 
-    amount: Decimal
+    amount: float
     """The amount to bonus."""
 
-def list_all(project_id: str, session: Optional[Session], **kwargs) -> AssignmentResponse:
+def list_all(project_id: str, session: Optional[Session] = None, **kwargs) -> AssignmentResponse:
     """
     List all assignments for a project.
 
@@ -104,7 +105,7 @@ def list_all(project_id: str, session: Optional[Session], **kwargs) -> Assignmen
     """
     return base.get(f'/assignments/{project_id}', session=session, **kwargs)
 
-def approve(project_id: str, participants: list[Participant], session: Optional[Session], idempotency_token: Optional[str]=None, **kwargs) -> None:
+def approve(project_id: str, participants: list[Participant], session: Optional[Session] = None, idempotency_token: Optional[str]=None, **kwargs) -> None:
     """
     Approve participants associated with a project.
 
@@ -130,7 +131,7 @@ def approve(project_id: str, participants: list[Participant], session: Optional[
                  json_response=False,
                  **kwargs)
 
-def approve_all(project_id: str, message: Optional[str], session: Optional[Session], idempotency_token: Optional[str]=None, **kwargs) -> None:
+def approve_all(project_id: str, message: Optional[str]=None, session: Optional[Session] = None, idempotency_token: Optional[str]=None, **kwargs) -> None:
     """
     Approve all participants associated with a project.
 
@@ -149,14 +150,14 @@ def approve_all(project_id: str, message: Optional[str], session: Optional[Sessi
     """
     base.post(f"/assignments/{project_id}/approve-all",
                  json={
-                     'message': message
+                     'message': message if message is not None else ''
                  },
                  session=session,
                  idempotency_token=idempotency_token,
                  json_response=False,
                  **kwargs)
 
-def reject(project_id: str, participants: list[Participant], session: Optional[Session], idempotency_token: Optional[str]=None, **kwargs) -> None:
+def reject(project_id: str, participants: list[Participant], session: Optional[Session] = None, idempotency_token: Optional[str]=None, **kwargs) -> None:
     """
     Reject participants associated with a project
 
@@ -187,7 +188,7 @@ def reject(project_id: str, participants: list[Participant], session: Optional[S
                  json_response=False,
                  **kwargs)
 
-def bonus(project_id: str, bonus_payments: list[BonusPayment], session: Optional[Session], idempotency_token: Optional[str]=None, **kwargs) -> None:
+def bonus(project_id: str, bonus_payments: list[BonusPayment], session: Optional[Session] = None, idempotency_token: Optional[str]=None, **kwargs) -> None:
     """
     Bonus participants associated with a project
 
@@ -217,7 +218,7 @@ def bonus(project_id: str, bonus_payments: list[BonusPayment], session: Optional
                  json_response=False,
                  **kwargs)
 
-def reverse_rejections(project_id: str, participants: list[Participant], session: Optional[Session], idempotency_token: Optional[str]=None, **kwargs) -> None:
+def reverse_rejections(project_id: str, participants: list[Participant], session: Optional[Session] = None, idempotency_token: Optional[str]=None, **kwargs) -> None:
     """
     Reverse Rejections for previously Rejected assignments for a project.
 

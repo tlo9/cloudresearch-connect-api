@@ -1,4 +1,5 @@
-from decimal import Decimal
+# -*- coding: utf-8 -*-
+
 from typing import Optional, TypedDict
 from requests import Session
 from strenum import PascalCaseStrEnum
@@ -98,7 +99,7 @@ class FeasibilityRequest(TypedDict, total=False):
     participants: int
     """The amount of participants."""
 
-    payment: Decimal
+    payment: float
     """The amount in USD that you will pay."""
 
     targetingCriteria: Optional[DemographicTargeting]
@@ -109,7 +110,7 @@ class Platform(PascalCaseStrEnum):
     MANAGED_RESEARCH = auto()
 
 class FeasibilityResponse(TypedDict):
-    totalProjectCost: Decimal
+    totalProjectCost: float
     """Total cost of the project. Null if the project is not feasible."""
 
     availablePlatforms: Optional[list[Platform]]

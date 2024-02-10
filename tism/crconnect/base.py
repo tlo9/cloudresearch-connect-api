@@ -1,4 +1,5 @@
-from decimal import Decimal
+# -*- coding: utf-8 -*-
+
 import requests
 from requests import Session
 from typing import Iterator, Mapping, Optional, Any, TypedDict
@@ -26,7 +27,7 @@ class ApiError(Exception):
         data: The JSON content body of the error.
     '''
 
-    def __init__(self, *args, **kwargs):        
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.status_code = args[0]
 
@@ -70,7 +71,7 @@ def to_query_str(query_dict: Mapping[Any, Any]) -> str:
     '''
     return '&'.join(_to_query_str(query_dict))
 
-def endpoint_url(path: str, version='v1', query: Optional[str | Mapping[Any, Any]] = None) -> str:
+def endpoint_url(path: str, version: str = 'v1', query: Optional[str | Mapping[Any, Any]] = None) -> str:
     '''
     Build an endpoint URL string from an endpoint path.
     
@@ -155,7 +156,7 @@ def request(method: str, path: str, query: Optional[str | Mapping[Any, Any]] = N
     response = session.request(
         headers=({ 'IDEMPOTENCY-TOKEN': idempotency_token } if idempotency_token is not None else {}),
         method=method,
-        url=endpoint_url(path, query),
+        url=endpoint_url(path, query=query),
         **kwargs,
         )
     
@@ -163,11 +164,11 @@ def request(method: str, path: str, query: Optional[str | Mapping[Any, Any]] = N
         if return_response:
             return response
         elif json_response:
-            return response.json(parse_float=lambda s: Decimal(s))
+            return response.json()
         else:
             return response.content
     else:
-        raise ApiError(response.status_code, response.json(parse_float=lambda s: Decimal(s)))
+        raise ApiError(response.status_code, response.json())
 
 def get(path: str, query: Optional[str | dict[Any, Any]] = None, session: Optional[Session] = None,
         json_response: bool = True, return_response: bool = False, **kwargs) -> Any:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+
 from requests import Session
-from decimal import Decimal
 from typing import TypedDict, Optional
 from strenum import PascalCaseStrEnum, StrEnum
 from enum import auto
@@ -111,7 +111,7 @@ class ProjectData(TypedDict, total=False):
     projectUrl: Optional[str]
     """The URL of your survey (e.g. Qualtrics)."""
 
-    payment: Required[Decimal]
+    payment: Required[float]
     """(Required) The amount in USD that you will pay."""
 
     estimatedTimeInMinutes: Required[int]
@@ -166,7 +166,7 @@ class ProjectResponseData(ProjectData):
     projectId: Optional[str]
     """The id of the Project."""
 
-    totalCost: Decimal
+    totalCost: float
     """The total cost of the project including Connect fees."""
 
     createdAt: str
@@ -213,17 +213,59 @@ class ProjectStatistics(TypedDict):
     approvedAssignments: int
     """The number of assignments that have been approved."""
 
-    completionRate: Decimal
+    completionRate: float
     """Rate of total number of participants who started your project to how many actually completed it."""
 
-    bounceRate: Decimal
+    bounceRate: float
     """Rate of total number of participants who started your project to how many did not complete it."""
 
-    averageDuration: Decimal
+    averageDuration: float
     """Average time duration in minutes of completed assignments."""
 
-    medianDuration: Decimal
+    medianDuration: float
     """Median time duration in minutes of completed assignments."""
+
+class Paginator:
+    '''
+    A paginator iterates through long lists of results. Each list is sliced into pages of
+    items of a maximum length.
+    
+    Attributes:
+        current_page: The most recent page of results that was retrieved. Is `None` if `next()` was
+        not called on the paginator.
+        session: The current Requests session. If `None`, then the most recent session created by `create_session()` is used.
+        path: The endpoint path (not including the base url).
+        query: An optional url query. It may be a query string or a `dict` of key value pairs.
+        kwargs: Additional arguments to pass to the underlying `request()` function.
+    '''
+    def __init__(self, path: str, query: Optional[str | FilterQuery] = None, session: Optional[Session] = None, **kwargs):
+        '''
+        Args:
+            session: The current Requests session. If `None`, then the most recent session created by `create_session()` is used.
+            path: The endpoint path (not including the base url).
+            query: An optional url query. It may be a query string or a `dict` of key value pairs.
+            kwargs: Additional arguments to pass to the underlying `request()` function.
+        '''
+        self.current_page: Optional[ProjectResponsePage] = None
+        self.path = path
+        self.query = query
+        self.session = session
+        self.kwargs = kwargs
+    
+    def __iter__(self) -> ProjectResponseData:
+        self.current_page = base.get(self.path, query=self.query, session=self.session, **self.kwargs)
+
+        while True:
+            for x in self.current_page.get('projects', []):
+                yield x
+
+            if self.query is None:
+                self.query  = { 'NextToken': self.current_page.get('nextToken', None) }
+            else:
+                self.query['NextToken'] = self.current_page.get('nextToken', None)
+
+            if self.query['NextToken'] is None:
+                break
 
 def create(project_data: ProjectData, session: Optional[Session]=None, idempotency_token: Optional[str]=None, **kwargs) -> ProjectResponse:
     """
@@ -249,7 +291,7 @@ def create(project_data: ProjectData, session: Optional[Session]=None, idempoten
     """
     return base.post("/project", json=project_data, idempotency_token=idempotency_token, session=session, **kwargs)
 
-def list_all(query: Optional[FilterQuery]=None, session: Optional[Session]=None, **kwargs) -> ProjectResponsePage:
+def list_all(query: Optional[FilterQuery]=None, session: Optional[Session]=None, **kwargs) -> Paginator:
     """
     List projects.
 
@@ -270,7 +312,7 @@ def list_all(query: Optional[FilterQuery]=None, session: Optional[Session]=None,
             400 - Bad Request.
             401 - Invalid API or unauthorized resource access.
     """
-    return base.get("/project", query=query, session=session, **kwargs)
+    return Paginator("/project", query=query, session=session, **kwargs)
 
 def retrieve(project_id: str, session: Optional[Session]=None, **kwargs) -> ProjectResponse:
     """
