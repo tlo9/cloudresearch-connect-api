@@ -1,6 +1,6 @@
 [project]
 name="tism.crconnect"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
   { name="Tiju Oliver", email="tiju.oliver@gmail.com" },
 ]

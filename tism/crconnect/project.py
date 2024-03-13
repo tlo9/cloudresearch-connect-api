@@ -5,7 +5,7 @@ from typing import TypedDict, Optional
 from strenum import PascalCaseStrEnum, StrEnum
 from enum import auto
 from typing_extensions import Required
-
+from collections.abc import Generator
 from . demographics import DemographicTargeting
 from . import base
 
@@ -246,25 +246,33 @@ class Paginator:
             query: An optional url query. It may be a query string or a `dict` of key value pairs.
             kwargs: Additional arguments to pass to the underlying `request()` function.
         '''
-        self.current_page: Optional[ProjectResponsePage] = None
         self.path = path
         self.query = query
         self.session = session
         self.kwargs = kwargs
     
-    def __iter__(self) -> ProjectResponseData:
-        self.current_page = base.get(self.path, query=self.query, session=self.session, **self.kwargs)
+    def __iter__(self) -> Generator[None, ProjectResponseData, None]:
+        match self.query:
+            case dict():
+                query = self.query.copy()
+            case str():
+                query = dict([(q.split('=', maxsplit=2)+[None])[:2] for q in query.split('&')])
+            case None:
+                query = None
 
         while True:
-            for x in self.current_page.get('projects', []):
+            current_page = base.get(self.path, query=query, session=self.session, **self.kwargs)
+
+            for x in current_page.get('projects', []):
                 yield x
 
-            if self.query is None:
-                self.query  = { 'NextToken': self.current_page.get('nextToken', None) }
-            else:
-                self.query['NextToken'] = self.current_page.get('nextToken', None)
+            match query:
+                case None | str():
+                    query  = { 'NextToken': current_page.get('nextToken', None) }
+                case _:
+                    query['NextToken'] = current_page.get('nextToken', None)
 
-            if self.query['NextToken'] is None:
+            if query['NextToken'] is None:
                 break
 
 def create(project_data: ProjectData, session: Optional[Session]=None, idempotency_token: Optional[str]=None, **kwargs) -> ProjectResponse:
